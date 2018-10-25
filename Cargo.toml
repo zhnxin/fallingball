@@ -1,0 +1,8 @@
+[package]
+name = "fallingball"
+version = "0.1.0"
+authors = ["zhengxin <zhngxin@aliyun.com>"]
+
+[dependencies]
+ggez="*"
+rand="*"
