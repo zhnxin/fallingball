@@ -2,6 +2,7 @@ extern crate ggez;
 extern crate rand;
 pub mod ball;
 pub mod bar;
+pub mod timer;
 
 #[cfg(test)]
 mod tests {

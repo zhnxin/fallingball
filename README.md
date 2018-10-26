@@ -16,7 +16,7 @@ The following picture is the expected UI of this game.
 - [x] Timer Bar
 - [x] Ball
 - [ ] Box
-- [ ] Power Recorder
+- [x] Power Recorder
 - [ ] Main State
 
 ## examples
@@ -31,6 +31,10 @@ Flying the ball by the direction you click.
 
 ## bar
 
-Countdown 5 sec after clicked and show the Y coordinate over the windows hight.
+- countdown 5 sec after clicked shown in vertical timer bar;
+- record the time(less than 5 sec) between left mouse button down and up;
+- show the Y coordinate over the windows hight in vertical bar;
+- show the X coordinate over the windows hight in horizontal bar;
+
 
 ![bar](./images/bar.gif)

@@ -35,6 +35,13 @@ impl Ball {
         self.velocity = velocity;
     }
 
+    pub fn get_pos(&self)->Point2{
+        self.pos.0
+    }
+    pub fn get_radius(&self) ->f32{
+        self.radius
+    }
+
     fn get_draw_radius(&self) -> f32 {
         (1.0+self.pos.1/BALL_HIGHT_MAX)*self.radius
     }
