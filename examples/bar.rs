@@ -65,9 +65,6 @@ impl event::EventHandler for MainState {
     }
     fn mouse_button_down_event(&mut self, ctx: &mut Context, button: event::MouseButton, _x: i32, _y: i32) {
         if button == event::MouseButton::Left{
-            let window_size = graphics::get_size(ctx);
-            self.bar.set_value(1f32 - _x as f32 /window_size.0 as f32);
-            self.vel_bar.set_value(1f32 - _y as f32 /window_size.1 as f32);
             self.power_record_bar.start(ctx);
             println!("mouse_button_down:{:?}",std::time::Instant::now());
         }
@@ -86,6 +83,19 @@ impl event::EventHandler for MainState {
             },
             _ =>{},
         }
+    }
+
+    fn mouse_motion_event(&mut self, 
+            _ctx: &mut Context, 
+            _state: event::MouseState, 
+            _x: i32, 
+            _y: i32, 
+            _xrel: i32, 
+            _yrel: i32
+        ){
+        let window_size = graphics::get_size(_ctx);
+        self.bar.set_value(_x as f32 /window_size.0 as f32);
+        self.vel_bar.set_value(1f32 - _y as f32 /window_size.1 as f32);
     }
 }
 

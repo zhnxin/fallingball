@@ -31,15 +31,17 @@ impl Bar {
     }
 
     fn update_graphic(&mut self){
+        self.value_rect.x = self.rim_rect.x + 1.0;
         match self.direction {
             BarDirection::Horizontal => {
+                self.value_rect.y = self.rim_rect.y + 1.0;
                 self.value_rect.w = (self.rim_rect.w-1.0)*self.value;
                 self.value_rect.h = self.rim_rect.h - 2.0;
                 },
             BarDirection::Vertical => {
-                self.value_rect.h = (self.rim_rect.h-2.0)*self.value;
                 self.value_rect.y = self.rim_rect.y+1.0+(self.rim_rect.h-2.0)*(1.0 - self.value);
                 self.value_rect.w = self.rim_rect.w - 2.0;
+                self.value_rect.h = (self.rim_rect.h-2.0)*self.value;
             },
         }
     }
@@ -180,7 +182,7 @@ impl TimerBar{
     }
 
     pub fn update(&mut self,ctx: &Context) {
-        if !self.is_paused() && !self.is_stopped() {
+        if self.time_tick.is_to_updated(){
             self.time_tick.update(ctx);
             self.update_value();
         }

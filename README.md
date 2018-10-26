@@ -15,7 +15,7 @@ The following picture is the expected UI of this game.
 - [x] Data Bar
 - [x] Timer Bar
 - [x] Ball
-- [ ] Box
+- [x] Block
 - [x] Power Recorder
 - [ ] Main State
 
@@ -38,3 +38,13 @@ Flying the ball by the direction you click.
 
 
 ![bar](./images/bar.gif)
+
+## block
+
+__This is not a game, but you can still have a little fun with it.__
+
+Click the left mounse button to start the 'game'. Click to `block` to get the score. Every block would live for 2 Sec. If lost it after it's living time, the lost record would increase.
+
+Have fun with it!!! :)
+
+![block](./images/block.gif)

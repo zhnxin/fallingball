@@ -3,6 +3,7 @@ extern crate rand;
 pub mod ball;
 pub mod bar;
 pub mod timer;
+pub mod block;
 
 #[cfg(test)]
 mod tests {
