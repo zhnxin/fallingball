@@ -100,46 +100,35 @@ impl Bar {
     }
 
 }
-#[repr(u8)]
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub enum TimeBarMode {
-    IncreaseAutoDisappear = 0,
-    DecreaseAutoDisappear = 1,
-    Increase = 2,
-    Decrease = 3,
-}
 
 #[derive(Debug)]
 pub struct TimerBar {
     bar : Bar,
     time_tick: Timer,
-    mode: TimeBarMode,
+    is_increase: bool,
 }
 
 impl TimerBar{
-    pub fn new(duration:f64,x: f32, y: f32, w: f32, h: f32)-> TimerBar {
+    pub fn new(duration:f64,x: f32, y: f32, l: f32, w: f32)-> TimerBar {
         TimerBar{
-            bar: Bar::new(x,y,w,h),
+            bar: Bar::new(x,y,l,w),
             time_tick:Timer::new(duration),
-            mode: TimeBarMode::DecreaseAutoDisappear,
+            is_increase: false,
         }
     }
 
     fn update_value(&mut self){
         let value = self.get_value();
-        match self.mode {
-            TimeBarMode::Increase|TimeBarMode::IncreaseAutoDisappear=> {
-                self.bar.set_value(value);
-            },
-            TimeBarMode::Decrease|TimeBarMode::DecreaseAutoDisappear=>{
-                self.bar.set_value(1.0-value);
-            }
+        if self.is_increase{
+            self.bar.set_value(value);
+        }else {
+            self.bar.set_value(1.0-value);
         }
     }
 
-    pub fn set_mode(&mut self,mode: TimeBarMode){
+    pub fn set_increase(&mut self,is_increase:bool){
         self.update_value();
-        self.mode = mode;
+        self.is_increase = is_increase;
     }
 
     pub fn set_direction(&mut self,direction: BarDirection){
@@ -182,21 +171,14 @@ impl TimerBar{
     }
 
     pub fn update(&mut self,ctx: &Context) {
-        if self.time_tick.is_to_updated(){
+        if self.time_tick.on_start(){
             self.time_tick.update(ctx);
             self.update_value();
         }
     }
 
     pub fn draw(&self,ctx:&mut Context) ->GameResult<()> {
-        match self.mode {
-            TimeBarMode::Decrease|TimeBarMode::Increase => {
-                self.bar.draw(ctx)?;
-            },
-            _ => {
-                if !self.is_stopped(){self.bar.draw(ctx)?;}
-            },
-        }
+        self.bar.draw(ctx)?;
         Ok(())
     }
 }

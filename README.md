@@ -17,7 +17,15 @@ The following picture is the expected UI of this game.
 - [x] Ball
 - [x] Block
 - [x] Power Recorder
-- [ ] Main State
+- [x] Main State
+- [ ] Basic sould effects
+
+
+## short view
+
+The game is nearly completed with a little modification to be more enjoyable. As for recentlty, it's a little bit difficult for me.
+
+![game](./images/game.gif)
 
 ## examples
 

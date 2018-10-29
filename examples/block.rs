@@ -195,7 +195,9 @@ impl event::EventHandler for MainState {
 }
 
 pub fn main() {
-    let c = conf::Conf::new();
+    let mut c = conf::Conf::new();
+    c.window_mode.height = 600;
+    c.window_mode.width = 400;
     let ctx = &mut Context::load_from_conf("falling ball", "ggez", c).unwrap();
     if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
         let mut path = std::path::PathBuf::from(manifest_dir);

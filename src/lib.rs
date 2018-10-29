@@ -4,6 +4,7 @@ pub mod ball;
 pub mod bar;
 pub mod timer;
 pub mod block;
+pub mod gamestate;
 
 #[cfg(test)]
 mod tests {

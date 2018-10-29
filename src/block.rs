@@ -40,7 +40,7 @@ impl Block {
 
     pub fn is_hit_cricle(&self,point: Point2,radius:f32) -> bool {
         let pos = (self.pos.0 + self.width/2.0,self.pos.1+self.width * 0.6);
-        (point.x-pos.0)*(point.x-pos.0) + (point.y - pos.1)*(point.y-pos.1) <= 0.48*self.width+radius
+        (point.x-pos.0)*(point.x-pos.0) + (point.y - pos.1)*(point.y-pos.1) <= (0.48*self.width+radius)*(0.48*self.width+radius)
     }
 
     pub fn is_contains(&self,point: Point2)->bool{
@@ -61,7 +61,7 @@ impl Block {
     }
 
     pub fn update(&mut self,ctx:&Context){
-        if self.timer_tick.is_to_updated(){
+        if self.timer_tick.on_start(){
             self.timer_tick.update(ctx);
             self.update_graphic();
         }

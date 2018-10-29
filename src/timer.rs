@@ -6,6 +6,7 @@ use ggez::Context;
 pub struct Timer {
     duration : f64,
     started : time::Duration,
+    paused: f64,
     event_flag: (bool,bool),
     value: f32,
 }
@@ -15,6 +16,7 @@ impl Timer {
         Timer{
             duration:duration,
             started: time::Duration::new(0,0),
+            paused: 0f64,
             event_flag:(true,true),
             value:0f32,
         }
@@ -36,6 +38,10 @@ impl Timer {
         self.event_flag = (false,true);
     }
 
+    pub fn pause_triggle(&mut self){
+        self.event_flag = (false,!self.event_flag.1);
+    }
+
     pub fn is_paused(&self) ->bool{
         !self.event_flag.0 && self.event_flag.1
     }
@@ -48,7 +54,7 @@ impl Timer {
         self.event_flag.0 && self.event_flag.1
     }
 
-    pub fn is_to_updated(&self) ->bool{
+    pub fn on_start(&self) ->bool{
         !(self.event_flag.1 || self.event_flag.0)
     }
 
@@ -56,6 +62,7 @@ impl Timer {
         self.value = 0f32;
         self.event_flag = (false,false);
         self.started = timer::get_time_since_start(ctx);
+        self.paused = 0f64;
     }
 
     pub fn restore(&mut self,duration:f64){
@@ -64,10 +71,15 @@ impl Timer {
     }
 
     pub fn update(&mut self,ctx: &Context) {
-        if self.is_to_updated() {
-            let time_passed = timer::duration_to_f64(timer::get_time_since_start(ctx)) - timer::duration_to_f64(self.started);
+        if self.on_start() {
+            let time_passed = timer::duration_to_f64(timer::get_time_since_start(ctx)) - timer::duration_to_f64(self.started) - self.paused;
             self.value = (time_passed / self.duration)as f32;
             self.event_flag.0 = self.value > 1f32;
+            return;
+        }
+        if self.is_paused(){
+            self.paused = timer::duration_to_f64(timer::get_time_since_start(ctx)) - timer::duration_to_f64(self.started)*self.value as f64;
+            return;
         }
     }
 }

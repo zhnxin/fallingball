@@ -11,7 +11,7 @@ pub struct Ball {
     radius: f32,
     pos: (Point2,f32),
     velocity:(f32,f32,f32),
-    is_active:bool,
+    alive:bool,
 }
 
 impl Ball {
@@ -20,14 +20,14 @@ impl Ball {
             radius:radius,
             pos:(Point2::new(pos.0,pos.1),BALL_HIGHT_INIT),
             velocity:velocity,
-            is_active:true,
+            alive:true,
         }
     }
     pub fn set_radius(&mut self,radius:f32){
         self.radius = radius;
     }
     pub fn restore(&mut self,radius:f32,pos:(f32,f32),velocity:(f32,f32,f32)) {
-        self.is_active = true;
+        self.alive = true;
         self.radius = radius;
         (self.pos.0).x = pos.0;
         (self.pos.0).y = pos.1;
@@ -42,16 +42,24 @@ impl Ball {
         self.radius
     }
 
+    pub fn is_avtive(&self)->bool{
+        self.alive
+    }
+
+    pub fn is_on_ground(&self) ->bool{
+        self.pos.1 <= 0f32
+    }
+
     fn get_draw_radius(&self) -> f32 {
-        (1.0+self.pos.1/BALL_HIGHT_MAX)*self.radius
+        (1.0+1.5*self.pos.1/BALL_HIGHT_MAX)*self.radius
     }
 
     fn get_draw_color(&self) -> graphics::Color{
         graphics::Color::new(0f32,0f32,0f32,1f32 - 0.1*self.pos.1/BALL_HIGHT_MAX)
     }
 
-    pub fn diable(&mut self) {
-        self.is_active = false;
+    pub fn disable(&mut self) {
+        self.alive = false;
     }
 
     pub fn set_direction(&mut self,direction: f32){
@@ -69,7 +77,7 @@ impl Ball {
 
 
     pub fn update(&mut self,time_delta_persent:f32){
-        if self.pos.1 > 0f32{
+        if self.alive && self.pos.1 > 0f32{
             (self.pos.0).x += self.velocity.0 * time_delta_persent;
             (self.pos.0).y += self.velocity.1 * time_delta_persent;
             self.velocity.2 += GRAVITY * time_delta_persent;
@@ -79,13 +87,13 @@ impl Ball {
 
     pub fn draw(&self,ctx:&mut Context) ->GameResult<()>{
         graphics::set_color(ctx, self.get_draw_color())?;
-        graphics::circle(
-            ctx,
-            DrawMode::Fill,
-            self.pos.0,
-            self.get_draw_radius(),
-            0.2,
-        )?;
+            graphics::circle(
+                ctx,
+                DrawMode::Fill,
+                self.pos.0,
+                self.get_draw_radius(),
+                0.2,
+            )?;
         Ok(())
     }
 
