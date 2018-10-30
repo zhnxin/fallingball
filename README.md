@@ -18,12 +18,12 @@ The following picture is the expected UI of this game.
 - [x] Block
 - [x] Power Recorder
 - [x] Main State
-- [ ] Basic sould effects
+- [x] Basic sould effects
 
 
 ## short view
 
-The game is nearly completed with a little modification to be more enjoyable. As for recentlty, it's a little bit difficult for me.
+The game is nearly completed with a little modification to be more enjoyable. As for this currelt version, it's a little bit difficult for me.Otherwise,the best scre for me is 20 by recently. Enjoy youself. ^_^
 
 ![game](./images/game.gif)
 

@@ -1,7 +1,4 @@
-use ggez::event;
-use ggez::graphics;
-use ggez::{Context, GameResult};
-use ggez::timer;
+use ggez::{event,graphics,Context, GameResult,timer,audio};
 use rand::{self,thread_rng, Rng};
 
 use super::{block::Block,timer::Timer,ball::{Ball,BALL_VELOCITY_MAX},bar};
@@ -14,7 +11,7 @@ const BLOCK_NUM: usize = BLOCK_COUNT*BLOCK_COUNT;
 const BLOCK_ALIVE:f64 = 10f64;
 const BLOCK_GENERATE: f64 = 5f64;
 
-const RELOADING_TIME:f64 = 0.5f64;
+const RELOADING_TIME:f64 = 1f64;
 
 #[derive(Debug)]
 struct StateBlock {
@@ -37,6 +34,30 @@ impl StateBall{
         self.extra_live_timer.get_event();
     }
 }
+#[derive(Debug)]
+struct SouldEffects {
+    energy_up:audio::Source,
+    boom : audio::Source,
+    shot : audio::Source,
+    loss : audio::Source,
+}
+
+impl SouldEffects{
+    fn new(ctx :&mut Context)->SouldEffects{
+        SouldEffects{
+            energy_up: audio::Source::new(ctx, "/energy_charge.ogg").unwrap(),
+            boom: audio::Source::new(ctx, "/boom.ogg").unwrap(),
+            shot: audio::Source::new(ctx, "/pew.ogg").unwrap(),
+            loss: audio::Source::new(ctx, "/loss.ogg").unwrap(),
+        }
+    }
+
+    fn energy_charge_reload(&mut self,ctx:&mut Context){
+        self.energy_up = audio::Source::new(ctx, "/energy_charge.ogg").unwrap();
+    }
+}
+
+
 
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -62,6 +83,8 @@ pub struct GameState {
     status: GameStatus,
     score: usize,
     left:usize,
+
+    sould_effects: SouldEffects,
 }
 
 impl GameState {
@@ -91,6 +114,8 @@ impl GameState {
             left:5,
             score:0,
             status: GameStatus::Ready,
+
+            sould_effects: SouldEffects::new(_ctx),
         };
         s.power_record_bar.set_direction(bar::BarDirection::Vertical);
         s.power_record_bar.set_increase(true);
@@ -115,12 +140,21 @@ impl GameState {
 
     fn get_ball_max_vel(&self) ->f32{
         let w = self.delta_length*BLOCK_COUNT as f32/2.0;
-        (w*w + self.window_size.1*self.window_size.1).sqrt()/BALL_MAX_TIME
+        let h = self.delta_length*(4+BLOCK_COUNT) as f32;
+        (w*w + h*h).sqrt()/BALL_MAX_TIME
     }
 
     fn game_over(&mut self){
         self.block_generate_time_ticker.stop();
         self.ball_ready_timer.stop();
+    }
+
+    fn game_restart(&mut self,ctx:&Context){
+            self.status = GameStatus::Running;
+            self.score = 0;
+            self.left = 5;
+            self.restore_timer();
+            self.block_generate_time_ticker.start(ctx);
     }
 
     fn random_block(&mut self,ctx:&Context){
@@ -157,13 +191,17 @@ impl GameState {
         }
     }
 
-    fn update_running(&mut self,ctx:&Context) -> GameResult<()>{
+    fn update_running(&mut self,ctx:&mut Context) -> GameResult<()>{
         self.block_generate_time_ticker.update(ctx);
         self.ball_ready_timer.update(ctx);
         if self.ball_ready_timer.get_event(){
             //ready sould
         }
         self.power_record_bar.update(ctx);
+        if self.power_record_bar.get_event(){
+            self.sould_effects.energy_up.stop();
+            self.sould_effects.energy_charge_reload(ctx);
+        }
 
         if self.block_generate_time_ticker.get_event(){
             self.random_block(ctx);
@@ -190,13 +228,16 @@ impl GameState {
         }
 
         //if ball fall fown on ground
+        let mut sould_hit :u8= 0;
         for b in self.ball_list.iter_mut().filter(|b| b.ball.is_avtive() && b.ball.is_on_ground()){
             b.ball.disable();
+            sould_hit = sould_hit.max(1);
             let mut is_hit = false;
             for bk in self.block_list.iter_mut().filter(|bk| {
                 !bk.block.is_stopped() && bk.block.is_hit_cricle(b.ball.get_pos(),b.ball.get_radius())
             }){
                 is_hit = true;
+                sould_hit = 2;
                 bk.block.stop();
                 self.block_index[bk.index] = false;
                 self.score += 1;
@@ -204,6 +245,12 @@ impl GameState {
             if !is_hit{
                 b.extra_live_timer.start(ctx);
             }
+        }
+
+        match sould_hit{
+            1 => {self.sould_effects.loss.play()?;},
+            2 => {self.sould_effects.boom.play()?;},
+            _=>{},
         }
         Ok(())
     }
@@ -314,6 +361,8 @@ impl event::EventHandler for GameState {
     fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: event::MouseButton, _x: i32, _y: i32) {
         if self.status == GameStatus::Running && button == event::MouseButton::Left{
             self.power_record_bar.start(_ctx);
+            
+            self.sould_effects.energy_up.play().unwrap();
         }
     }
 
@@ -322,6 +371,12 @@ impl event::EventHandler for GameState {
         self.power_record_bar.update(_ctx);
         self.power_record_bar.pause();
         if self.status == GameStatus::Running && button == event::MouseButton::Left && self.ball_ready_timer.is_stopped(){
+            //sould effetc
+            self.sould_effects.shot.play().unwrap();
+            if self.sould_effects.energy_up.playing(){
+                self.sould_effects.energy_up.stop();
+                self.sould_effects.energy_charge_reload(_ctx);
+            }
             let point = (x as f32 - self.window_size.0/2.0,y as f32-self.window_size.1);
             let point_len = (point.0*point.0+point.1*point.1).sqrt();
             let max_vel = self.get_ball_max_vel();
@@ -344,9 +399,7 @@ impl event::EventHandler for GameState {
         }
 
         if self.status != GameStatus::Running && button == event::MouseButton::Left{
-            self.status = GameStatus::Running;
-            self.restore_timer();
-            self.block_generate_time_ticker.start(_ctx);
+            self.game_restart(_ctx);
         }
     }
 }
