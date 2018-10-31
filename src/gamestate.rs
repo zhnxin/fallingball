@@ -1,7 +1,7 @@
 use ggez::{event,graphics,Context, GameResult,timer,audio};
 use rand::{self,thread_rng, Rng};
 
-use super::{block::Block,timer::Timer,ball::{Ball,BALL_VELOCITY_MAX},bar};
+use super::{block::Block,timer::Timer,ball::{Ball},bar};
 
 const BALL_PERIOD:f64 = 1f64;
 const BALL_MAX_TIME: f32 = 1.5f32;
@@ -138,10 +138,14 @@ impl GameState {
         (self.window_size.0 as f32- BLOCK_COUNT as f32 * self.delta_length) as f32 /2f32
     }
 
-    fn get_ball_max_vel(&self) ->f32{
+    fn get_ball_max_range(&self)->f32{
         let w = self.delta_length*BLOCK_COUNT as f32/2.0;
-        let h = self.delta_length*(4+BLOCK_COUNT) as f32;
-        (w*w + h*h).sqrt()/BALL_MAX_TIME
+        let h = self.delta_length*(6+BLOCK_COUNT) as f32;
+        (w*w+h*h).sqrt()
+    }
+
+    fn get_ball_max_vel(&self) ->f32{
+        self.get_ball_max_range()/BALL_MAX_TIME
     }
 
     fn game_over(&mut self){
@@ -189,6 +193,28 @@ impl GameState {
             block_item.block.start(ctx);
             self.block_list.push(block_item);
         }
+    }
+
+    fn throw_ball(&mut self,(x,y):(f32,f32),ctx:&Context){
+        let point = (x - self.window_size.0/2.0,y -self.window_size.1);
+        let point_len = (point.0*point.0+point.1*point.1).sqrt();
+        let max_vel = self.get_ball_max_vel();
+        let power = self.power_record_bar.get_value();
+        let power = Ball::get_vel_alpha(power,BALL_MAX_TIME);
+        let radius = self.delta_length*0.2;
+        let b_pos = (self.window_size.0/2.0,self.window_size.1);
+        let vel = (point.0/point_len*max_vel*power,point.1/point_len*max_vel*power,power);
+        if let Some(b) = self.ball_list.iter_mut().find(|b| !b.ball.is_avtive()){
+            b.ball.restore(radius,b_pos,vel);
+            self.ball_ready_timer.start(ctx);
+            return;
+        }
+        let b = StateBall{
+            ball:Ball::new(radius,b_pos,vel),
+            extra_live_timer: Timer::new(0.5),
+            };
+        self.ball_list.push(b);
+        self.ball_ready_timer.start(ctx);
     }
 
     fn update_running(&mut self,ctx:&mut Context) -> GameResult<()>{
@@ -377,24 +403,7 @@ impl event::EventHandler for GameState {
                 self.sould_effects.energy_up.stop();
                 self.sould_effects.energy_charge_reload(_ctx);
             }
-            let point = (x as f32 - self.window_size.0/2.0,y as f32-self.window_size.1);
-            let point_len = (point.0*point.0+point.1*point.1).sqrt();
-            let max_vel = self.get_ball_max_vel();
-            let power = self.power_record_bar.get_value();
-            let radius = self.delta_length*0.2;
-            let b_pos = (self.window_size.0/2.0,self.window_size.1);
-            let vel = (point.0/point_len*max_vel*power,point.1/point_len*max_vel*power,power*BALL_VELOCITY_MAX);
-            if let Some(b) = self.ball_list.iter_mut().find(|b| !b.ball.is_avtive()){
-                b.ball.restore(radius,b_pos,vel);
-                self.ball_ready_timer.start(_ctx);
-                return;
-            }
-            let b = StateBall{
-                ball:Ball::new(radius,b_pos,vel),
-                extra_live_timer: Timer::new(0.5),
-                };
-            self.ball_list.push(b);
-            self.ball_ready_timer.start(_ctx);
+            self.throw_ball((x as f32,y as f32),_ctx);
             
         }
 

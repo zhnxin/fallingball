@@ -15,6 +15,15 @@ pub struct Ball {
 }
 
 impl Ball {
+    pub fn get_vel(flying_time: f32)->f32{
+        0.5*flying_time + 0.5/GRAVITY/flying_time
+    }
+
+    pub fn get_vel_alpha(persent:f32,t_max:f32)->f32{
+        let k = persent*t_max;
+        (-GRAVITY*k*k/(k+k+1f32)).sqrt()
+    }
+
     pub fn new(radius:f32,pos:(f32,f32),velocity:(f32,f32,f32)) ->Ball{
         Ball{
             radius:radius,
@@ -48,6 +57,10 @@ impl Ball {
 
     pub fn is_on_ground(&self) ->bool{
         self.pos.1 <= 0f32
+    }
+
+    pub fn get_view_radius(hight:f32,radius:f32)->f32{
+        (1.0+1.5*hight/BALL_HIGHT_MAX)*radius
     }
 
     fn get_draw_radius(&self) -> f32 {
